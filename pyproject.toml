@@ -10,5 +10,5 @@ dependencies = [
     "python-socketio>=5.14.3",
 ]
 
-[tool.poetry.config]
+[tool.poetry]
 package-mode = false
