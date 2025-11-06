@@ -278,26 +278,15 @@ def load_word_list():
 
 WORD_LIST = load_word_list()
 
+# Замініть вашу поточну функцію generate_prompt на цю:
 def generate_prompt():
-    consonants = 'bcdfghjklmnpqrstvwxyz'
-    vowels = 'aeiou'
-    
-    length = random.choice([2, 2, 3])
-    prompt = ''
-    
-    if length == 2:
-        if random.random() > 0.5:
-            prompt = random.choice(consonants) + random.choice(vowels)
-        else:
-            prompt = random.choice(vowels) + random.choice(consonants)
-    else:
-        pattern = random.choice([
-            lambda: random.choice(consonants) + random.choice(vowels) + random.choice(consonants),
-            lambda: random.choice(vowels) + random.choice(consonants) + random.choice(vowels),
-        ])
-        prompt = pattern()
-    
-    return prompt
+    common_prompts = [
+        "an", "in", "er", "re", "ed", "es", "on", "it", "or", "te",
+        "at", "is", "he", "st", "nd", "nt", "en", "th", "de", "se",
+        "mi", "be", "ve", "ne", "ti", "ro", "sh", "ch", "le", "al",
+    ]
+    return random.choice(common_prompts)
+
 
 def is_valid_word(word, prompt):
     word = word.lower().strip()
