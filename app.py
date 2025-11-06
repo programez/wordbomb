@@ -271,7 +271,7 @@ def load_word_list():
         'wipe', 'wire', 'wisdom', 'wise', 'wish', 'with', 'withdraw', 'within', 'without', 'witness',
         'woman', 'wonder', 'wonderful', 'wood', 'wooden', 'word', 'work', 'worker', 'working', 'works',
         'workshop', 'world', 'worried', 'worry', 'worth', 'would', 'wound', 'wrap', 'write', 'writer',
-        'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young',
+        'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young', 'necktie', 'tie', 'establishment', 'mess', 'reestablishment', 'reoccupation',
         'your', 'yours', 'yourself', 'youth', 'zone', 'teheran','iraq','tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','norrköping','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar'
     ])
     return common_words
