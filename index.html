@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Bomb</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu-screen, .lobby-screen, .game-screen {
+            display: none;
+        }
+
+        .menu-screen.active, .lobby-screen.active, .game-screen.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+        }
+
+        .btn-secondary:hover {
+            background: #663399;
+        }
+
+        .room-code {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .room-code h2 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .room-code .code {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #764ba2;
+            letter-spacing: 5px;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .player-card.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
+            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 1); }
+        }
+
+        .player-card.eliminated {
+            background: linear-gradient(135deg, #666 0%, #999 100%);
+            opacity: 0.6;
+        }
+
+        .player-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .player-lives {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        .player-score {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .game-info {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .prompt-display {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .prompt-display h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .prompt-text {
+            font-size: 4em;
+            font-weight: bold;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+
+        .timer {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .timer.warning {
+            color: #ff6b6b;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .word-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .word-input input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+        }
+
+        .word-input button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+        }
+
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .game-over-screen {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .game-over-screen h2 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .winner-display {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .winner-display h3 {
+            font-size: 2em;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .prompt-text {
+                font-size: 2.5em;
+            }
+
+            .timer {
+                font-size: 2em;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>💣 Word Bomb</h1>
+
+            <div class="menu-screen active">
+                <div class="input-group">
+                    <label for="username">Your Name:</label>
+                    <input type="text" id="username" placeholder="Enter your name" maxlength="20">
+                </div>
+                <button class="btn" onclick="createRoom()">Create New Room</button>
+                <div class="input-group" style="margin-top: 30px;">
+                    <label for="roomCode">Room Code:</label>
+                    <input type="text" id="roomCode" placeholder="Enter room code" maxlength="6">
+                </div>
+                <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
+            </div>
+
+            <div class="lobby-screen">
+                <div class="room-code">
+                    <h2>Room Code</h2>
+                    <div class="code" id="displayRoomCode"></div>
+                    <p style="color: #666; margin-top: 10px;">Share this code with friends!</p>
+                </div>
+
+                <div id="lobbyMessage" class="message info">
+                    Waiting for players... (Need at least 2 players to start)
+                </div>
+
+                <h3 style="margin: 20px 0; color: #667eea;">Players in Lobby:</h3>
+                <div class="players-grid" id="lobbyPlayers"></div>
+
+                <button class="btn" id="startGameBtn" onclick="startGame()" disabled>Start Game</button>
+                <button class="btn btn-secondary" onclick="leaveLobby()">Leave Lobby</button>
+            </div>
+
+            <div class="game-screen">
+                <div class="game-info">
+                    <div class="prompt-display">
+                        <h3>Find a word containing:</h3>
+                        <div class="prompt-text" id="currentPrompt"></div>
+                    </div>
+
+                    <div class="timer" id="timer">15</div>
+
+                    <div id="turnIndicator" class="message info"></div>
+                </div>
+
+                <div class="word-input" id="wordInputSection">
+                    <input type="text" id="wordInput" placeholder="Type your word..." autocomplete="off">
+                    <button class="btn" onclick="submitWord()">Submit</button>
+                </div>
+
+                <div id="gameMessage"></div>
+
+                <h3 style="margin: 20px 0; color: #667eea;">Players:</h3>
+                <div class="players-grid" id="gamePlayers"></div>
+
+                <div class="game-over-screen hidden" id="gameOverScreen">
+                    <h2>Game Over!</h2>
+                    <div class="winner-display" id="winnerDisplay"></div>
+                    <button class="btn" onclick="backToMenu()">Back to Menu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentRoomId = null;
+        let myPlayerId = null;
+        let gameState = null;
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            myPlayerId = socket.id;
+        });
+
+        socket.on('room_created', (data) => {
+            currentRoomId = data.room_id;
+            gameState = data.game_state;
+            showLobby();
+        });
+
+        socket.on('room_joined', (data) => {
+            gameState = data.game_state;
+            showLobby();
+        });
+
+        socket.on('player_joined', (data) => {
+            gameState = data.game_state;
+            updateLobbyPlayers();
+        });
+
+        socket.on('player_left', (data) => {
+            gameState = data.game_state;
+            updateLobbyPlayers();
+        });
+
+        socket.on('game_started', (data) => {
+            gameState = data.game_state;
+            showGame();
+            updateGameUI();
+        });
+
+        socket.on('word_accepted', (data) => {
+            gameState = data.game_state;
+            showMessage(`✅ ${data.word.toUpperCase()} accepted!`, 'success');
+            updateGameUI();
+            document.getElementById('wordInput').value = '';
+        });
+
+        socket.on('word_rejected', (data) => {
+            showMessage(`❌ ${data.message}`, 'error');
+        });
+
+        socket.on('bomb_exploded', (data) => {
+            gameState = data.game_state;
+            const player = gameState.players.find(p => p.player_id === data.player_id);
+            if (player) {
+                showMessage(`💥 BOOM! ${player.username} lost a life!`, 'error');
+            }
+            updateGameUI();
+        });
+
+        socket.on('next_turn', (data) => {
+            gameState = data.game_state;
+            updateGameUI();
+        });
+
+        socket.on('timer_update', (data) => {
+            updateTimer(data.time_remaining);
+        });
+
+        socket.on('game_over', (data) => {
+            gameState = data.game_state;
+            showGameOver(data.winner);
+        });
+
+        socket.on('error', (data) => {
+            alert(data.message);
+        });
+
+        function createRoom() {
+            const username = document.getElementById('username').value.trim() || 'Player';
+            socket.emit('create_room', { username });
+        }
+
+        function joinRoom() {
+            const username = document.getElementById('username').value.trim() || 'Player';
+            const roomCode = document.getElementById('roomCode').value.toUpperCase().trim();
+            
+            if (!roomCode) {
+                alert('Please enter a room code');
+                return;
+            }
+            
+            currentRoomId = roomCode;
+            socket.emit('join_room', { room_id: roomCode, username });
+        }
+
+        function startGame() {
+            socket.emit('start_game');
+        }
+
+        function submitWord() {
+            const word = document.getElementById('wordInput').value.trim();
+            if (word) {
+                socket.emit('submit_word', { word });
+            }
+        }
+
+        function leaveLobby() {
+            location.reload();
+        }
+
+        function backToMenu() {
+            location.reload();
+        }
+
+        function showLobby() {
+            document.querySelector('.menu-screen').classList.remove('active');
+            document.querySelector('.lobby-screen').classList.add('active');
+            document.getElementById('displayRoomCode').textContent = currentRoomId;
+            updateLobbyPlayers();
+        }
+
+        function showGame() {
+            document.querySelector('.lobby-screen').classList.remove('active');
+            document.querySelector('.game-screen').classList.add('active');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+
+        function showGameOver(winner) {
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            const winnerDisplay = document.getElementById('winnerDisplay');
+            
+            if (winner) {
+                winnerDisplay.innerHTML = `
+                    <h3>🏆 ${winner.username} Wins! 🏆</h3>
+                    <p style="font-size: 1.5em; margin-top: 15px;">Score: ${winner.score}</p>
+                `;
+            } else {
+                winnerDisplay.innerHTML = '<h3>Draw!</h3>';
+            }
+        }
+
+        function updateLobbyPlayers() {
+            const container = document.getElementById('lobbyPlayers');
+            container.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                div.innerHTML = `
+                    <div class="player-name">${player.username}</div>
+                    <div style="font-size: 0.9em;">Ready</div>
+                `;
+                container.appendChild(div);
+            });
+
+            const startBtn = document.getElementById('startGameBtn');
+            if (gameState.players.length >= 2) {
+                startBtn.disabled = false;
+                document.getElementById('lobbyMessage').textContent = 'Ready to start!';
+            } else {
+                startBtn.disabled = true;
+                document.getElementById('lobbyMessage').textContent = 'Waiting for players... (Need at least 2 players to start)';
+            }
+        }
+
+        function updateGameUI() {
+            if (!gameState) return;
+
+            document.getElementById('currentPrompt').textContent = gameState.current_prompt || '';
+            
+            const container = document.getElementById('gamePlayers');
+            container.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                
+                if (player.player_id === gameState.current_turn) {
+                    div.classList.add('active');
+                }
+                
+                if (player.status === 'eliminated') {
+                    div.classList.add('eliminated');
+                }
+                
+                const hearts = '❤️'.repeat(player.lives);
+                
+                div.innerHTML = `
+                    <div class="player-name">${player.username}</div>
+                    <div class="player-lives">${hearts || '💀'}</div>
+                    <div class="player-score">Score: ${player.score}</div>
+                `;
+                container.appendChild(div);
+            });
+
+            const currentPlayer = gameState.players.find(p => p.player_id === gameState.current_turn);
+            const turnIndicator = document.getElementById('turnIndicator');
+            const wordInputSection = document.getElementById('wordInputSection');
+            
+            if (currentPlayer) {
+                if (currentPlayer.player_id === myPlayerId) {
+                    turnIndicator.textContent = '🎯 YOUR TURN! Type a word quickly!';
+                    turnIndicator.className = 'message success';
+                    wordInputSection.style.display = 'flex';
+                    document.getElementById('wordInput').focus();
+                } else {
+                    turnIndicator.textContent = `⏳ ${currentPlayer.username}'s turn...`;
+                    turnIndicator.className = 'message info';
+                    wordInputSection.style.display = 'none';
+                }
+            }
+        }
+
+        function updateTimer(seconds) {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = seconds;
+            
+            if (seconds <= 5) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('gameMessage');
+            msgEl.textContent = text;
+            msgEl.className = `message ${type}`;
+            
+            setTimeout(() => {
+                msgEl.textContent = '';
+                msgEl.className = '';
+            }, 3000);
+        }
+
+        document.getElementById('wordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitWord();
+            }
+        });
+
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createRoom();
+            }
+        });
+
+        document.getElementById('roomCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                joinRoom();
+            }
+        });
+    </script>
+</body>
+</html>
