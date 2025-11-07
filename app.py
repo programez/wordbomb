@@ -38,7 +38,7 @@ def load_word_list():
         'artist', 'aspect', 'assault', 'assert', 'assess', 'asset', 'assign', 'assist', 'assume', 'assure',
         'attach', 'attack', 'attempt', 'attend', 'attract', 'author', 'auto', 'available', 'average', 'avoid',
         'award', 'aware', 'baby', 'back', 'background', 'ball', 'band', 'bank', 'base', 'basic',
-        'basis', 'battle', 'beach', 'bear', 'beat', 'beautiful', 'because', 'become', 'been', 'before',
+        'basis', 'battle', 'beach', 'bear', 'beat', 'beautiful', 'because', 'become', 'bee', 'been', 'before',
         'begin', 'behavior', 'behind', 'being', 'belief', 'believe', 'bell', 'belong', 'below', 'bench',
         'bend', 'beneath', 'benefit', 'beside', 'best', 'better', 'between', 'beyond', 'bike', 'bill',
         'bind', 'bird', 'birth', 'bite', 'bitter', 'black', 'blade', 'blame', 'blank', 'blind',
