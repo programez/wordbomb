@@ -179,7 +179,7 @@ def load_word_list():
         'pipe', 'pitch', 'place', 'plan', 'plane', 'planet', 'planning', 'plant', 'plastic', 'plate',
         'platform', 'play', 'player', 'please', 'pleasure', 'plenty', 'plot', 'plus', 'pocket', 'poem',
         'poet', 'poetry', 'point', 'pole', 'police', 'policy', 'political', 'politically', 'politician', 'politics',
-        'poll', 'pollution', 'pool', 'poor', 'popular', 'population', 'porch', 'port', 'portion', 'portrait',
+        'poll', 'pollution', 'pond', 'pool', 'poor', 'popular', 'population', 'porch', 'port', 'portion', 'portrait',
         'portray', 'pose', 'position', 'positive', 'possess', 'possibility', 'possible', 'possibly', 'post', 'potato',
         'potential', 'potentially', 'pound', 'pour', 'poverty', 'powder', 'power', 'powerful', 'practical', 'practice',
         'pray', 'prayer', 'predict', 'prefer', 'preference', 'pregnant', 'preparation', 'prepare', 'prescription', 'presence',
@@ -277,7 +277,8 @@ def load_word_list():
         'woman', 'wonder', 'wonderful', 'wood', 'wooden', 'word', 'work', 'worker', 'working', 'works',
         'workshop', 'world', 'worried', 'worry', 'worth', 'would', 'wound', 'wrap', 'write', 'writer',
         'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young', 'necktie', 'tie', 'establishment', 'mess', 'reestablishment', 'reoccupation',
-        'your', 'yours', 'yourself', 'youth', 'zone', 'teheran','iraq','tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','norrköping','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar', 'or', 'lore', 'ore', 'oar'
+        'your', 'yours', 'yourself', 'youth', 'zone', 'tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','onyx','attractions','insulin','culinary','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar', 'or', 'lore', 'ore', 'oar',
+        'afghanistan','albania','algeria','andorra','angola','argentina','armenia','australia','austria','azerbaijan','bahamas','bahrain','bangladesh','barbados','belarus','belgium','belize','benin','bhutan','bolivia','bosnia','botswana','brazil','brunei','bulgaria','burundi','cambodia','cameroon','canada','chad','chile','china','colombia','comoros','congo','croatia','cuba','cyprus','czechia','denmark','djibouti','dominica','dominica','ecuador','egypt','salvador','guinea','eritrea','estonia','eswatini','ethiopia','fiji','finland','france','gabon','gambia','georgia','germany','ghana','greece','grenada','guatemala','guyana','haiti','honduras','hungary','iceland','india','indonesia','iran','iraq','ireland','italy','jamaica','japan','jordan','kazakhstan','kenya','kiribati','kosovo','kuwait','kyrgyzstan','laos','latvia','lebanon','lesotho','liberia','libya','liechtenstein','lithuania','luxembourg','madagascar','malawi','malaysia','maldives','mali','malta','mauritania','mauritius','mexico','micronesia','moldova','monaco','mongolia','montenegro','morocco','mozambique','myanmar','namibia','nauru','nepal','netherlands','new zealand','nicaragua','niger','nigeria','macedonia','norway','oman','pakistan','palau','palestine','panama','paraguay','peru','philippines','poland','portugal','qatar','romania','rwanda','samoa','san marino','saudi','senegal','serbia','seychelles','singapore','slovakia','slovenia','somalia','spain','sudan','suriname','sweden','switzerland','syria','taiwan','tajikistan','tanzania','thailand','togo','tonga','tunisia','turkey','turkmenistan','tuvalu','uganda','ukraine','uae','uk','usa','uruguay','uzbekistan','vanuatu','vatican','venezuela','vietnam','yemen','zambia','zimbabwe'
     ])
     words = list(set(list(common_words) + dwyl_words))
     return words
@@ -296,8 +297,6 @@ def generate_prompt():
 
 def is_valid_word(word, prompt):
     word = word.lower().strip()
-    if len(word) < 3:
-        return False
     if prompt.lower() not in word:
         return False
     return word in WORD_LIST
@@ -368,20 +367,28 @@ class GameRoom:
         return False
     
     def process_word(self, player_id, word):
-        current_player = self.get_current_player()
-        if not current_player or current_player.player_id != player_id:
-            return {'success': False, 'message': 'Not your turn'}
-        
-        word_lower = word.lower().strip()
-        if word_lower in self.used_words:
-            return {'success': False, 'message': 'Word already used'}
-        
-        if not is_valid_word(word, self.current_prompt):
-            return {'success': False, 'message': 'Invalid word'}
-        
-        self.used_words.add(word_lower)
-        current_player.score += 1
-        return {'success': True}
+    current_player = self.get_current_player()
+    if not current_player or current_player.player_id != player_id:
+        return {'success': False, 'message': 'Not your turn'}
+    
+    word_lower = word.lower().strip()
+    
+    banned_words = ['israel', 'israeli', 'israelis', 'russia', 'russian', 'russians']
+    if word_lower in banned_words:
+        current_player.lives -= 1
+        if current_player.lives <= 0:
+            current_player.status = 'eliminated'
+        return {'success': False, 'message': 'You're a bitch - you lose a life!'}
+    
+    if word_lower in self.used_words:
+        return {'success': False, 'message': 'Word already used'}
+    
+    if not is_valid_word(word, self.current_prompt):
+        return {'success': False, 'message': 'Invalid word'}
+    
+    self.used_words.add(word_lower)
+    current_player.score += 1
+    return {'success': True}
     
     def handle_bomb_explosion(self):
         current_player = self.get_current_player()
