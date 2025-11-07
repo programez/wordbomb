@@ -144,7 +144,7 @@ def load_word_list():
         'look', 'loose', 'lose', 'loss', 'lost', 'loud', 'love', 'lovely', 'lover', 'lower',
         'luck', 'lucky', 'lunch', 'lung', 'machine', 'magazine', 'magic', 'mail', 'main', 'mainly',
         'maintain', 'maintenance', 'major', 'majority', 'make', 'maker', 'makeup', 'male', 'mall', 'manage',
-        'management', 'manager', 'manner', 'manufacturer', 'manufacturing', 'many', 'margin', 'mark', 'market', 'marketing',
+        'management', 'manager', 'maniac', 'manner', 'manufacturer', 'manufacturing', 'many', 'margin', 'mark', 'market', 'marketing',
         'marriage', 'married', 'marry', 'mask', 'mass', 'massive', 'master', 'match', 'material', 'math',
         'matter', 'maximum', 'maybe', 'mayor', 'meal', 'mean', 'meaning', 'meanwhile', 'measure', 'meat',
         'mechanism', 'media', 'medical', 'medicine', 'medium', 'meet', 'meeting', 'member', 'membership', 'memory',
@@ -375,7 +375,7 @@ class GameRoom:
     
         word_lower = word.lower().strip()
     
-        banned_words = ['israel', 'israeli', 'israelis', 'russia', 'russian', 'russians', 'putin', 'vladimir']
+        banned_words = ['russia', 'russian', 'russians', 'putin', 'vladimir', 'israel', 'israeli', 'israelis']
         if word_lower in banned_words:
             current_player.lives -= 1
             if current_player.lives <= 0:
