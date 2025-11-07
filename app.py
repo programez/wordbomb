@@ -74,7 +74,7 @@ def load_word_list():
         'desert', 'deserve', 'design', 'designer', 'desire', 'desk', 'desperate', 'despite', 'destroy', 'detail',
         'detect', 'determine', 'develop', 'device', 'devote', 'dialogue', 'diamond', 'diary', 'diet', 'differ',
         'difference', 'different', 'difficult', 'digital', 'dimension', 'dinner', 'direct', 'direction', 'director', 'dirt',
-        'dirty', 'disabled', 'disagree', 'disappear', 'disaster', 'discipline', 'discover', 'discuss', 'disease', 'dish',
+        'dirty', 'disabled', 'disagree', 'disappear', 'disaster', 'discipline', 'discombobulated', 'discover', 'discuss', 'disease', 'dish',
         'dismiss', 'disorder', 'display', 'dispute', 'distance', 'distinct', 'distinguish', 'distribute', 'district', 'diverse',
         'divide', 'division', 'divorce', 'doctor', 'document', 'domestic', 'dominant', 'dominate', 'door', 'double',
         'doubt', 'down', 'downtown', 'dozen', 'draft', 'drag', 'drama', 'dramatic', 'draw', 'drawer',
