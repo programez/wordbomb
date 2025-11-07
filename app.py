@@ -26,7 +26,7 @@ WORDS_FILE = os.path.join(os.path.dirname(__file__), "words.txt")
 
 def load_word_list():
     with open(WORDS_FILE, "r", encoding="utf-8") as f:
-    dwyl_words = f.read().splitlines()
+        dwyl_words = f.read().splitlines()
     common_words = set([
         'about', 'above', 'abuse', 'accept', 'accident', 'account', 'across', 'action', 'active', 'actor',
         'actual', 'adapt', 'added', 'admit', 'adopt', 'adult', 'advance', 'advice', 'affair', 'affect',
