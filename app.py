@@ -367,28 +367,28 @@ class GameRoom:
         return False
     
     def process_word(self, player_id, word):
-    current_player = self.get_current_player()
-    if not current_player or current_player.player_id != player_id:
+        current_player = self.get_current_player()
+        if not current_player or current_player.player_id != player_id:
         return {'success': False, 'message': 'Not your turn'}
     
-    word_lower = word.lower().strip()
+        word_lower = word.lower().strip()
     
-    banned_words = ['israel', 'israeli', 'israelis', 'russia', 'russian', 'russians']
-    if word_lower in banned_words:
-        current_player.lives -= 1
-        if current_player.lives <= 0:
-            current_player.status = 'eliminated'
-        return {'success': False, 'message': 'You\'re a bitch - you lose a life!'}
+        banned_words = ['israel', 'israeli', 'israelis', 'russia', 'russian', 'russians']
+        if word_lower in banned_words:
+            current_player.lives -= 1
+            if current_player.lives <= 0:
+                current_player.status = 'eliminated'
+                return {'success': False, 'message': 'You\'re a bitch - you lose a life!'}
     
-    if word_lower in self.used_words:
-        return {'success': False, 'message': 'Word already used'}
+        if word_lower in self.used_words:
+            return {'success': False, 'message': 'Word already used'}
     
-    if not is_valid_word(word, self.current_prompt):
-        return {'success': False, 'message': 'Invalid word'}
+        if not is_valid_word(word, self.current_prompt):
+            return {'success': False, 'message': 'Invalid word'}
     
-    self.used_words.add(word_lower)
-    current_player.score += 1
-    return {'success': True}
+        self.used_words.add(word_lower)
+        current_player.score += 1
+        return {'success': True}
     
     def handle_bomb_explosion(self):
         current_player = self.get_current_player()
