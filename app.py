@@ -378,7 +378,7 @@ class GameRoom:
         current_player.lives -= 1
         if current_player.lives <= 0:
             current_player.status = 'eliminated'
-        return {'success': False, 'message': 'You're a bitch - you lose a life!'}
+        return {'success': False, 'message': 'You\'re a bitch - you lose a life!'}
     
     if word_lower in self.used_words:
         return {'success': False, 'message': 'Word already used'}
