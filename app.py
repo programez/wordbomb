@@ -7,6 +7,7 @@ import random
 import string
 import time
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'word-bomb-secret-key'
@@ -21,7 +22,11 @@ TURN_TIME = 15
 MIN_PLAYERS = 2
 MAX_PLAYERS = 16
 
+WORDS_FILE = os.path.join(os.path.dirname(__file__), "words.txt")
+
 def load_word_list():
+    with open(WORDS_FILE, "r", encoding="utf-8") as f:
+    dwyl_words = f.read().splitlines()
     common_words = set([
         'about', 'above', 'abuse', 'accept', 'accident', 'account', 'across', 'action', 'active', 'actor',
         'actual', 'adapt', 'added', 'admit', 'adopt', 'adult', 'advance', 'advice', 'affair', 'affect',
@@ -274,7 +279,8 @@ def load_word_list():
         'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young', 'necktie', 'tie', 'establishment', 'mess', 'reestablishment', 'reoccupation',
         'your', 'yours', 'yourself', 'youth', 'zone', 'teheran','iraq','tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','norrköping','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar', 'or', 'lore', 'ore', 'oar'
     ])
-    return common_words
+    words = list(set(common_words + dwyl_words))
+    return words
 
 WORD_LIST = load_word_list()
 
