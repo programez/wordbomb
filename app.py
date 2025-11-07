@@ -369,7 +369,7 @@ class GameRoom:
     def process_word(self, player_id, word):
         current_player = self.get_current_player()
         if not current_player or current_player.player_id != player_id:
-        return {'success': False, 'message': 'Not your turn'}
+            return {'success': False, 'message': 'Not your turn'}
     
         word_lower = word.lower().strip()
     
