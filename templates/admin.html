@@ -177,7 +177,7 @@
             background: #151515;
             border: 1px solid #4444ff;
             padding: 15px;
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
             font-size: 11px;
             line-height: 1.4;
@@ -187,6 +187,42 @@
             margin: 3px 0;
             padding: 2px 5px;
             border-left: 2px solid #4444ff;
+        }
+
+        .log-join {
+            border-left-color: #00ff00;
+        }
+
+        .log-leave {
+            border-left-color: #ff6b35;
+        }
+
+        .log-kick {
+            border-left-color: #ff4444;
+        }
+
+        .log-ban {
+            border-left-color: #ffd700;
+        }
+
+        .log-word {
+            border-left-color: #00ccff;
+        }
+
+        .log-turn {
+            border-left-color: #ff00ff;
+        }
+
+        .log-game {
+            border-left-color: #ffff00;
+        }
+
+        .log-bomb {
+            border-left-color: #ff6600;
+        }
+
+        .log-win {
+            border-left-color: #00ff00;
         }
 
         .room-info {
@@ -383,6 +419,12 @@
             }
         });
 
+        socket.on('admin_log_update', (data) => {
+            if (adminAuthenticated && data.log_entry) {
+                addToActionLog(data.log_entry);
+            }
+        });
+
         function showLoginMessage(message, type) {
             const msgEl = document.getElementById('loginMessage');
             msgEl.textContent = message;
@@ -438,6 +480,7 @@
                             <span style="font-size: 0.9em; color: #888;">
                                 Players: ${activePlayers}/${playerCount} | Status: ${gameStatus}<br>
                                 ${room.current_prompt ? `Prompt: "${room.current_prompt}"` : ''}
+                                ${room.current_turn ? `| Current Turn: ${getPlayerName(room.players, room.current_turn)}` : ''}
                             </span>
                         </div>
                     </div>
@@ -445,6 +488,11 @@
                 
                 container.appendChild(roomDiv);
             }
+        }
+
+        function getPlayerName(players, playerId) {
+            const player = players.find(p => p.player_id === playerId);
+            return player ? player.username : 'Unknown';
         }
 
         function updatePlayerList(rooms) {
@@ -515,21 +563,30 @@
 
             // Show most recent first
             actionLog.slice().reverse().forEach(logEntry => {
-                const logDiv = document.createElement('div');
-                logDiv.className = 'log-entry';
-                logDiv.textContent = logEntry;
-                container.appendChild(logDiv);
+                addToActionLog(logEntry, false);
             });
         }
 
-        function addToActionLog(logEntry) {
+        function addToActionLog(logEntry, prepend = true) {
             const container = document.getElementById('actionLog');
             const logDiv = document.createElement('div');
             logDiv.className = 'log-entry';
+            
+            // Determine log type for styling
+            if (logEntry.includes('JOIN:')) logDiv.classList.add('log-join');
+            else if (logEntry.includes('LEAVE:')) logDiv.classList.add('log-leave');
+            else if (logEntry.includes('KICK:')) logDiv.classList.add('log-kick');
+            else if (logEntry.includes('BAN:')) logDiv.classList.add('log-ban');
+            else if (logEntry.includes('WORD:')) logDiv.classList.add('log-word');
+            else if (logEntry.includes('TURN:')) logDiv.classList.add('log-turn');
+            else if (logEntry.includes('GAME:')) logDiv.classList.add('log-game');
+            else if (logEntry.includes('BOMB:')) logDiv.classList.add('log-bomb');
+            else if (logEntry.includes('WIN:')) logDiv.classList.add('log-win');
+            else if (logEntry.includes('ROOM:')) logDiv.classList.add('log-game');
+            
             logDiv.textContent = logEntry;
             
-            // Add to top
-            if (container.firstChild) {
+            if (prepend && container.firstChild) {
                 container.insertBefore(logDiv, container.firstChild);
             } else {
                 container.appendChild(logDiv);
@@ -541,7 +598,7 @@
                 socket.emit('admin_kick_player', {
                     player_id: playerId,
                     room_id: roomId,
-                    admin_name: 'яадмін'
+                    admin_name: 'Admin'
                 });
             }
         }
@@ -552,7 +609,7 @@
                     player_id: playerId,
                     room_id: roomId,
                     username: username,
-                    admin_name: 'яадмін'
+                    admin_name: 'Admin'
                 });
             }
         }
