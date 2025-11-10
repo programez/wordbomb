@@ -8,6 +8,7 @@ import string
 import time
 from datetime import datetime
 import os
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'word-bomb-secret-key'
@@ -16,7 +17,11 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 rooms = {}
 players = {}
 timers = {}
+banned_users = set()
+admin_actions_log = []
+admin_sessions = {}
 
+ADMIN_PASSWORD = "admin123"  # Change this in production
 INITIAL_LIVES = 2
 TURN_TIME = 15
 MIN_PLAYERS = 2
@@ -279,14 +284,13 @@ def load_word_list():
         'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young', 'necktie', 'tie', 'establishment', 'mess', 'reestablishment', 'reoccupation',
         'your', 'yours', 'yourself', 'youth', 'zone', 'tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','onyx','attractions','insulin','culinary','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar', 'or', 'lore', 'ore', 'oar',
         'afghanistan','albania','algeria','andorra','angola','argentina','armenia','australia','austria','azerbaijan','bahamas','bahrain','bangladesh','barbados','belarus','belgium','belize','benin','bhutan','bolivia','bosnia','botswana','brazil','brunei','bulgaria','burundi','cambodia','cameroon','canada','chad','chile','china','colombia','comoros','congo','croatia','cuba','cyprus','czechia','denmark','djibouti','dominica','dominica','ecuador','egypt','salvador','guinea','eritrea','estonia','eswatini','ethiopia','fiji','finland','france','gabon','gambia','georgia','germany','ghana','greece','grenada','guatemala','guyana','haiti','honduras','hungary','iceland','india','indonesia','iran','iraq','ireland','italy','jamaica','japan','jordan','kazakhstan','kenya','kiribati','kosovo','kuwait','kyrgyzstan','laos','latvia','lebanon','lesotho','liberia','libya','liechtenstein','lithuania','luxembourg','madagascar','malawi','malaysia','maldives','mali','malta','mauritania','mauritius','mexico','micronesia','moldova','monaco','mongolia','montenegro','morocco','mozambique','myanmar','namibia','nauru','nepal','netherlands','new zealand','nicaragua','niger','nigeria','macedonia','norway','oman','pakistan','palau','palestine','panama','paraguay','peru','philippines','poland','portugal','qatar','romania','rwanda','samoa','san marino','saudi','senegal','serbia','seychelles','singapore','slovakia','slovenia','somalia','spain','sudan','suriname','sweden','switzerland','syria','taiwan','tajikistan','tanzania','thailand','togo','tonga','tunisia','turkey','turkmenistan','tuvalu','uganda','ukraine','uae','uk','usa','uruguay','uzbekistan','vanuatu','vatican','venezuela','vietnam','yemen','zambia','zimbabwe',
-        'lesbian', 'wrath', 'row', 'deevaluation', 'reevaluation', 'evaluation', 'reeducation', 'educational', 'retry', 'ban', 'deevaluate', 'reeducate', 'reevaluate', 'evaluate', 'educate', 'educator', 'car', 'israel', 'israeli', 'israelis', 'putin', 'vladimir', 'russia', 'russian', 'russians', 'nigga', 'neger', 'nigger'
+        'lesbian', 'wrath', 'row', 'deevaluation', 'reevaluation', 'evaluation', 'retry', 'ban', 'deevaluate', 'reeducate', 'reevaluate', 'evaluate', 'educate', 'educator', 'car', 'israel', 'israeli', 'israelis', 'putin', 'vladimir', 'russia', 'russian', 'russians', 'nigga', 'neger', 'nigger'
     ])
     words = list(set(list(common_words) + dwyl_words))
     return words
 
 WORD_LIST = load_word_list()
 
-# Замініть вашу поточну функцію generate_prompt на цю:
 def generate_prompt():
     common_prompts = [
         "an", "in", "er", "re", "ed", "es", "on", "it", "or", "te",
@@ -295,7 +299,6 @@ def generate_prompt():
         "ru", "is", "ra", "ss", "car", "na"
     ]
     return random.choice(common_prompts)
-
 
 def is_valid_word(word, prompt):
     word = word.lower().strip()
@@ -418,9 +421,18 @@ class GameRoom:
             'time_remaining': max(0, int(self.timer_end_time - time.time())) if self.timer_end_time else 0
         }
 
+class AdminSession:
+    def __init__(self, session_id):
+        self.session_id = session_id
+        self.authenticated = False
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
 
 @socketio.on('connect')
 def handle_connect():
@@ -448,6 +460,10 @@ def handle_disconnect():
                     del timers[room_id]
                 del rooms[room_id]
         del players[sid]
+    
+    if sid in admin_sessions:
+        del admin_sessions[sid]
+    
     print(f'Client disconnected: {sid}')
 
 @socketio.on('create_room')
@@ -473,6 +489,11 @@ def handle_create_room(data):
 def handle_join_room(data):
     room_id = data.get('room_id')
     username = data.get('username', 'Player')
+    
+    # Check if username is banned
+    if username.lower() in banned_users:
+        emit('error', {'message': 'This username is banned'})
+        return
     
     if room_id not in rooms:
         emit('error', {'message': 'Room not found'})
@@ -538,6 +559,135 @@ def handle_submit_word(data):
         start_timer(room_id)
     else:
         emit('word_rejected', {'message': result['message']})
+
+@socketio.on('admin_login')
+def handle_admin_login(data):
+    password = data.get('password')
+    session_id = request.sid
+    
+    if password == ADMIN_PASSWORD:
+        admin_sessions[session_id] = AdminSession(session_id)
+        admin_sessions[session_id].authenticated = True
+        
+        # Get current game state
+        room_states = {}
+        for room_id, room in rooms.items():
+            room_states[room_id] = room.get_state()
+        
+        emit('admin_authenticated', {
+            'rooms': room_states,
+            'banned_users': list(banned_users),
+            'action_log': admin_actions_log[-50:]  # Last 50 actions
+        })
+    else:
+        emit('admin_error', {'message': 'Invalid password'})
+
+@socketio.on('admin_kick_player')
+def handle_admin_kick(data):
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    player_id = data.get('player_id')
+    room_id = data.get('room_id')
+    admin_name = data.get('admin_name', 'Admin')
+    
+    if room_id in rooms and player_id:
+        room = rooms[room_id]
+        player_to_kick = None
+        
+        # Find the player
+        for player in room.players:
+            if player.player_id == player_id:
+                player_to_kick = player
+                break
+        
+        if player_to_kick:
+            # Log the action
+            timestamp = datetime.now().strftime("[%H:%M CET]")
+            log_entry = f"{timestamp} KICK: {player_to_kick.username} kicked by {admin_name}"
+            admin_actions_log.append(log_entry)
+            
+            # Remove player from room
+            room.remove_player(player_id)
+            
+            # Notify all clients in the room
+            socketio.emit('player_left', {
+                'player_id': player_id,
+                'game_state': room.get_state()
+            }, room=room_id)
+            
+            # Notify admin panel
+            emit('admin_action_success', {
+                'message': f'Kicked {player_to_kick.username}',
+                'log_entry': log_entry
+            })
+            
+            # Update all admin panels
+            socketio.emit('admin_game_state_update', {
+                'rooms': {room_id: room.get_state()}
+            }, namespace='/', skip_sid=session_id)
+
+@socketio.on('admin_ban_player')
+def handle_admin_ban(data):
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    player_id = data.get('player_id')
+    room_id = data.get('room_id')
+    username = data.get('username')
+    admin_name = data.get('admin_name', 'Admin')
+    
+    if username:
+        # Add to banned list
+        banned_users.add(username.lower())
+        
+        # Log the action
+        timestamp = datetime.now().strftime("[%H:%M CET]")
+        log_entry = f"{timestamp} BAN: {username} added to banned list by {admin_name}"
+        admin_actions_log.append(log_entry)
+        
+        # Kick the player if they're currently in a room
+        if room_id in rooms and player_id:
+            room = rooms[room_id]
+            room.remove_player(player_id)
+            socketio.emit('player_left', {
+                'player_id': player_id,
+                'game_state': room.get_state()
+            }, room=room_id)
+        
+        # Notify admin panel
+        emit('admin_action_success', {
+            'message': f'Banned {username}',
+            'log_entry': log_entry,
+            'banned_users': list(banned_users)
+        })
+        
+        # Update all admin panels
+        socketio.emit('admin_banned_users_update', {
+            'banned_users': list(banned_users),
+            'log_entry': log_entry
+        }, namespace='/', skip_sid=session_id)
+
+@socketio.on('admin_get_state')
+def handle_admin_get_state():
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    room_states = {}
+    for room_id, room in rooms.items():
+        room_states[room_id] = room.get_state()
+    
+    emit('admin_state_update', {
+        'rooms': room_states,
+        'banned_users': list(banned_users),
+        'action_log': admin_actions_log[-50:]
+    })
 
 def start_timer(room_id):
     if room_id not in rooms:
