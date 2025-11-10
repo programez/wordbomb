@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Tymofii Bomb</title>
+    <title>Tymofii Bomb</title>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         * {
@@ -13,315 +13,402 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
-            background: #0a0a0a;
-            color: #00ff00;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .admin-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 20px;
-        }
-
-        .admin-panel {
-            width: 400px;
-            background: #1a1a1a;
-            border-left: 2px solid #00ff00;
-            padding: 20px;
-            height: 100vh;
-            position: fixed;
-            right: 0;
-            top: 0;
-            overflow-y: auto;
-            box-shadow: -5px 0 15px rgba(0, 255, 0, 0.1);
-        }
-
-        .login-screen {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: #0a0a0a;
+            padding: 20px;
         }
 
-        .login-form {
-            background: #1a1a1a;
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
             padding: 30px;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            width: 300px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
-        .login-form input {
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu-screen, .lobby-screen, .game-screen {
+            display: none;
+        }
+
+        .menu-screen.active, .lobby-screen.active, .game-screen.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group input {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #0a0a0a;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
 
-        .login-form button {
-            width: 100%;
-            padding: 10px;
-            background: #00ff00;
-            color: #0a0a0a;
-            border: none;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .login-form button:hover {
-            background: #00cc00;
-        }
-
-        h1, h2, h3 {
-            color: #00ff00;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: #151515;
-            border: 1px solid #333;
-            border-radius: 5px;
-        }
-
-        .player-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .player-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin: 5px 0;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 3px;
-        }
-
-        .player-info {
-            flex: 1;
-        }
-
-        .player-username {
-            font-weight: bold;
-            color: #00ff00;
-        }
-
-        .player-room {
-            font-size: 0.8em;
-            color: #888;
-        }
-
-        .player-actions {
-            display: flex;
-            gap: 5px;
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .btn-kick {
-            background: #ff6b35;
+            background: #667eea;
             color: white;
-        }
-
-        .btn-ban {
-            background: #ffd700;
-            color: black;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .btn:hover {
-            opacity: 0.8;
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
-        .banned-list {
-            background: #151515;
-            border: 1px solid #ff4444;
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+        }
+
+        .btn-secondary:hover {
+            background: #663399;
+        }
+
+        .room-code {
+            text-align: center;
+            margin: 20px 0;
             padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
         }
 
-        .banned-user {
-            padding: 5px;
-            margin: 2px 0;
-            background: #2a1a1a;
-            border-left: 3px solid #ff4444;
+        .room-code h2 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 5px;
         }
 
-        .action-log {
-            background: #151515;
-            border: 1px solid #4444ff;
+        .room-code .code {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #764ba2;
+            letter-spacing: 5px;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 11px;
-            line-height: 1.4;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
         }
 
-        .log-entry {
-            margin: 3px 0;
-            padding: 2px 5px;
-            border-left: 2px solid #4444ff;
+        .player-card.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            animation: pulse 1s infinite;
         }
 
-        .room-info {
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
+            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 1); }
+        }
+
+        .player-card.eliminated {
+            background: linear-gradient(135deg, #666 0%, #999 100%);
+            opacity: 0.6;
+        }
+
+        .player-name {
+            font-size: 1.2em;
+            font-weight: bold;
             margin-bottom: 10px;
+        }
+
+        .player-lives {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+
+        .player-score {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .game-info {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .prompt-display {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .prompt-display h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .prompt-text {
+            font-size: 4em;
+            font-weight: bold;
+            letter-spacing: 10px;
+            text-transform: uppercase;
+        }
+
+        .timer {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .timer.warning {
+            color: #ff6b6b;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .word-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .word-input input {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+        }
+
+        .word-input button {
+            padding: 15px 40px;
+            font-size: 1.2em;
+        }
+
+        .message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .game-over-screen {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .game-over-screen h2 {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .winner-display {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .winner-display h3 {
+            font-size: 2em;
+            color: #333;
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
             padding: 10px;
-            background: #222;
-            border: 1px solid #333;
+        }
+
+        .admin-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .admin-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .players-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .prompt-text {
+                font-size: 2.5em;
+            }
+
+            .timer {
+                font-size: 2em;
+            }
         }
 
         .hidden {
             display: none;
         }
-
-        .status-online {
-            color: #00ff00;
-        }
-
-        .status-offline {
-            color: #ff4444;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #333;
-        }
-
-        .refresh-btn {
-            background: #00ff00;
-            color: #0a0a0a;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-        }
-
-        .refresh-btn:hover {
-            background: #00cc00;
-        }
-
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #00ff00;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00cc00;
-        }
-
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 3px;
-            font-weight: bold;
-        }
-
-        .message.success {
-            background: #1a2a1a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .message.error {
-            background: #2a1a1a;
-            color: #ff4444;
-            border: 1px solid #ff4444;
-        }
     </style>
 </head>
 <body>
-    <div class="login-screen" id="loginScreen">
-        <div class="login-form">
-            <h2>🔐 Admin Login</h2>
-            <input type="password" id="adminPassword" placeholder="Enter admin password" autocomplete="off">
-            <button onclick="adminLogin()">Access Panel</button>
-            <div id="loginMessage" class="message error hidden"></div>
-        </div>
-    </div>
-
-    <div class="admin-container hidden" id="adminContainer">
-        <div class="main-content">
-            <div class="admin-header">
-                <h1>🛡️ Admin Panel</h1>
-                <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+    <div class="container">
+        <div class="card">
+            <div style="text-align: center; color: #666; font-size: 0.9em; margin-bottom: 5px;">
+                © Tymofii Zeniuk, 2025
             </div>
-            
-            <div class="section">
-                <h2>🌐 Active Rooms</h2>
-                <div id="roomsList">
-                    <div class="message info">No active rooms</div>
+            <h1>💣 Tymofii Bomb</h1>
+
+            <div class="menu-screen active">
+                <div class="input-group">
+                    <label for="username">Your Name:</label>
+                    <input type="text" id="username" placeholder="Enter your name" maxlength="20">
                 </div>
-            </div>
-        </div>
-
-        <div class="admin-panel">
-            <div class="section">
-                <h2>👥 Player Management</h2>
-                <div class="player-list" id="playerList">
-                    <div class="message info">No players online</div>
+                <button class="btn" onclick="createRoom()">Create New Room</button>
+                <div class="input-group" style="margin-top: 30px;">
+                    <label for="roomCode">Room Code:</label>
+                    <input type="text" id="roomCode" placeholder="Enter room code" maxlength="6">
                 </div>
-            </div>
+                <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
 
-            <div class="section">
-                <h2>🚫 Banned Users</h2>
-                <div class="banned-list" id="bannedUsers">
-                    <div class="message info">No banned users</div>
+                <div class="admin-link">
+                    <a href="/admin" target="_blank">Admin Panel →</a>
                 </div>
-            </div>
 
-            <div class="section">
-                <h2>📋 Action Log</h2>
-                <div class="action-log" id="actionLog">
-                    <div class="message info">No actions yet</div>
+                <div class="how-to-play" style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h3 style="color: #667eea; margin-bottom: 15px; text-align: center;">How to Play</h3>
+                    <div style="color: #666; line-height: 1.6;">
+                        <p>How to Create a Lobby: Input your name and press Create New Room.</p>
+                        <p style="margin-top: 10px;">How to Join a Lobby: Input your name and room code, and then press Join Room</p>
+                        <p style="margin-top: 10px;">The game can be played with 2 to 32768 players. The game starts with the Room Host.</p>
+                        <p style="margin-top: 10px;">You have to write an English word that is no shorter than 3 letters.</p>
+                        <p style="margin-top: 10px;">If the word is too short, it doesn't get accepted.</p>
+                        <p style="margin-top: 10px;">If the word is a banned word, it doesn't get accepted, and the player loses a life.</p>
+                        <p style="margin-top: 10px;">If the player doesn't submit a valid word within 15 seconds, the player loses a life.</p>
+                        <p style="margin-top: 10px;">The last player standing wins!</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="section">
-                <h2>⚡ Quick Actions</h2>
-                <div style="display: flex; gap: 10px; flex-direction: column;">
-                    <button class="btn" onclick="refreshData()" style="background: #00ff00; color: #0a0a0a;">Refresh All Data</button>
-                    <button class="btn btn-kick" onclick="clearActionLog()">Clear Action Log</button>
+            <div class="lobby-screen">
+                <div class="room-code">
+                    <h2>Room Code</h2>
+                    <div class="code" id="displayRoomCode"></div>
+                    <p style="color: #666; margin-top: 10px;">Share this code with friends!</p>
+                </div>
+
+                <div id="lobbyMessage" class="message info">
+                    Waiting for players... (Need at least 2 players to start)
+                </div>
+
+                <h3 style="margin: 20px 0; color: #667eea;">Players in Lobby:</h3>
+                <div class="players-grid" id="lobbyPlayers"></div>
+
+                <button class="btn" id="startGameBtn" onclick="startGame()" disabled>Start Game</button>
+                <button class="btn btn-secondary" onclick="leaveLobby()">Leave Lobby</button>
+            </div>
+
+            <div class="game-screen">
+                <div class="game-info">
+                    <div class="prompt-display">
+                        <h3>Find a word containing:</h3>
+                        <div class="prompt-text" id="currentPrompt"></div>
+                    </div>
+
+                    <div class="timer" id="timer">15</div>
+
+                    <div id="turnIndicator" class="message info"></div>
+                </div>
+
+                <div class="word-input" id="wordInputSection">
+                    <input type="text" id="wordInput" placeholder="Type your word..." autocomplete="off">
+                    <button class="btn" onclick="submitWord()">Submit</button>
+                </div>
+
+                <div id="gameMessage"></div>
+
+                <h3 style="margin: 20px 0; color: #667eea;">Players:</h3>
+                <div class="players-grid" id="gamePlayers"></div>
+
+                <div class="game-over-screen hidden" id="gameOverScreen">
+                    <h2>Game Over!</h2>
+                    <div class="winner-display" id="winnerDisplay"></div>
+                    <button class="btn" onclick="backToMenu()">Back to Menu</button>
                 </div>
             </div>
         </div>
@@ -329,262 +416,255 @@
 
     <script>
         const socket = io();
-        let adminAuthenticated = false;
+        let currentRoomId = null;
+        let myPlayerId = null;
+        let gameState = null;
 
-        function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            if (!password) {
-                showLoginMessage('Please enter password', 'error');
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            myPlayerId = socket.id;
+        });
+
+        socket.on('room_created', (data) => {
+            currentRoomId = data.room_id;
+            gameState = data.game_state;
+            showLobby();
+        });
+
+        socket.on('room_joined', (data) => {
+            gameState = data.game_state;
+            showLobby();
+        });
+
+        socket.on('player_joined', (data) => {
+            gameState = data.game_state;
+            updateLobbyPlayers();
+        });
+
+        socket.on('player_left', (data) => {
+            gameState = data.game_state;
+            updateLobbyPlayers();
+        });
+
+        socket.on('game_started', (data) => {
+            gameState = data.game_state;
+            showGame();
+            updateGameUI();
+        });
+
+        socket.on('word_accepted', (data) => {
+            gameState = data.game_state;
+            showMessage(`✅ ${data.word.toUpperCase()} accepted!`, 'success');
+            updateGameUI();
+            document.getElementById('wordInput').value = '';
+        });
+
+        socket.on('word_rejected', (data) => {
+            showMessage(`❌ ${data.message}`, 'error');
+        });
+
+        socket.on('bomb_exploded', (data) => {
+            gameState = data.game_state;
+            const player = gameState.players.find(p => p.player_id === data.player_id);
+            if (player) {
+                showMessage(`💥 BOOM! ${player.username} lost a life!`, 'error');
+            }
+            updateGameUI();
+        });
+
+        socket.on('next_turn', (data) => {
+            gameState = data.game_state;
+            updateGameUI();
+        });
+
+        socket.on('timer_update', (data) => {
+            updateTimer(data.time_remaining);
+        });
+
+        socket.on('game_over', (data) => {
+            gameState = data.game_state;
+            showGameOver(data.winner);
+        });
+
+        socket.on('error', (data) => {
+            alert(data.message);
+        });
+
+        function createRoom() {
+            const username = document.getElementById('username').value.trim() || 'Player';
+            socket.emit('create_room', { username });
+        }
+
+        function joinRoom() {
+            const username = document.getElementById('username').value.trim() || 'Player';
+            const roomCode = document.getElementById('roomCode').value.toUpperCase().trim();
+            
+            if (!roomCode) {
+                alert('Please enter a room code');
                 return;
             }
-
-            socket.emit('admin_login', { password });
+            
+            currentRoomId = roomCode;
+            socket.emit('join_room', { room_id: roomCode, username });
         }
 
-        socket.on('admin_authenticated', (data) => {
-            adminAuthenticated = true;
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('adminContainer').classList.remove('hidden');
-            updateAdminPanel(data);
-        });
+        function startGame() {
+            socket.emit('start_game');
+        }
 
-        socket.on('admin_error', (data) => {
-            showLoginMessage(data.message, 'error');
-        });
-
-        socket.on('admin_action_success', (data) => {
-            showActionMessage(data.message, 'success');
-            if (data.log_entry) {
-                addToActionLog(data.log_entry);
+        function submitWord() {
+            const word = document.getElementById('wordInput').value.trim();
+            if (word) {
+                socket.emit('submit_word', { word });
             }
-            if (data.banned_users) {
-                updateBannedUsers(data.banned_users);
-            }
-        });
+        }
 
-        socket.on('admin_game_state_update', (data) => {
-            if (adminAuthenticated) {
-                updateRoomsList(data.rooms);
-            }
-        });
+        function leaveLobby() {
+            location.reload();
+        }
 
-        socket.on('admin_banned_users_update', (data) => {
-            if (adminAuthenticated) {
-                updateBannedUsers(data.banned_users);
-                if (data.log_entry) {
-                    addToActionLog(data.log_entry);
+        function backToMenu() {
+            location.reload();
+        }
+
+        function showLobby() {
+            document.querySelector('.menu-screen').classList.remove('active');
+            document.querySelector('.lobby-screen').classList.add('active');
+            document.getElementById('displayRoomCode').textContent = currentRoomId;
+            updateLobbyPlayers();
+        }
+
+        function showGame() {
+            document.querySelector('.lobby-screen').classList.remove('active');
+            document.querySelector('.game-screen').classList.add('active');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+        }
+
+        function showGameOver(winner) {
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            const winnerDisplay = document.getElementById('winnerDisplay');
+            
+            if (winner) {
+                winnerDisplay.innerHTML = `
+                    <h3>🏆 ${winner.username} Wins! 🏆</h3>
+                    <p style="font-size: 1.5em; margin-top: 15px;">Score: ${winner.score}</p>
+                `;
+            } else {
+                winnerDisplay.innerHTML = '<h3>Draw!</h3>';
+            }
+        }
+
+        function updateLobbyPlayers() {
+            const container = document.getElementById('lobbyPlayers');
+            container.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                div.innerHTML = `
+                    <div class="player-name">${player.username}</div>
+                    <div style="font-size: 0.9em;">Ready</div>
+                `;
+                container.appendChild(div);
+            });
+
+            const startBtn = document.getElementById('startGameBtn');
+            if (gameState.players.length >= 2) {
+                startBtn.disabled = false;
+                document.getElementById('lobbyMessage').textContent = 'Ready to start!';
+            } else {
+                startBtn.disabled = true;
+                document.getElementById('lobbyMessage').textContent = 'Waiting for players... (Need at least 2 players to start)';
+            }
+        }
+
+        function updateGameUI() {
+            if (!gameState) return;
+
+            document.getElementById('currentPrompt').textContent = gameState.current_prompt || '';
+            
+            const container = document.getElementById('gamePlayers');
+            container.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                const div = document.createElement('div');
+                div.className = 'player-card';
+                
+                if (player.player_id === gameState.current_turn) {
+                    div.classList.add('active');
+                }
+                
+                if (player.status === 'eliminated') {
+                    div.classList.add('eliminated');
+                }
+                
+                const hearts = '❤️'.repeat(player.lives);
+                
+                div.innerHTML = `
+                    <div class="player-name">${player.username}</div>
+                    <div class="player-lives">${hearts || '💀'}</div>
+                    <div class="player-score">Score: ${player.score}</div>
+                `;
+                container.appendChild(div);
+            });
+
+            const currentPlayer = gameState.players.find(p => p.player_id === gameState.current_turn);
+            const turnIndicator = document.getElementById('turnIndicator');
+            const wordInputSection = document.getElementById('wordInputSection');
+            
+            if (currentPlayer) {
+                if (currentPlayer.player_id === myPlayerId) {
+                    turnIndicator.textContent = '🎯 YOUR TURN! Type a word quickly!';
+                    turnIndicator.className = 'message success';
+                    wordInputSection.style.display = 'flex';
+                    document.getElementById('wordInput').focus();
+                } else {
+                    turnIndicator.textContent = `⏳ ${currentPlayer.username}'s turn...`;
+                    turnIndicator.className = 'message info';
+                    wordInputSection.style.display = 'none';
                 }
             }
-        });
-
-        socket.on('admin_state_update', (data) => {
-            if (adminAuthenticated) {
-                updateAdminPanel(data);
-            }
-        });
-
-        function showLoginMessage(message, type) {
-            const msgEl = document.getElementById('loginMessage');
-            msgEl.textContent = message;
-            msgEl.className = `message ${type}`;
-            msgEl.classList.remove('hidden');
         }
 
-        function showActionMessage(message, type) {
-            // Create temporary message display
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-            messageDiv.textContent = message;
-            messageDiv.style.position = 'fixed';
-            messageDiv.style.top = '20px';
-            messageDiv.style.left = '50%';
-            messageDiv.style.transform = 'translateX(-50%)';
-            messageDiv.style.zIndex = '1000';
-            document.body.appendChild(messageDiv);
+        function updateTimer(seconds) {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = seconds;
+            
+            if (seconds <= 5) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
 
+        function showMessage(text, type) {
+            const msgEl = document.getElementById('gameMessage');
+            msgEl.textContent = text;
+            msgEl.className = `message ${type}`;
+            
             setTimeout(() => {
-                document.body.removeChild(messageDiv);
+                msgEl.textContent = '';
+                msgEl.className = '';
             }, 3000);
         }
 
-        function updateAdminPanel(data) {
-            updateRoomsList(data.rooms);
-            updatePlayerList(data.rooms);
-            updateBannedUsers(data.banned_users);
-            updateActionLog(data.action_log);
-        }
-
-        function updateRoomsList(rooms) {
-            const container = document.getElementById('roomsList');
-            container.innerHTML = '';
-
-            if (Object.keys(rooms).length === 0) {
-                container.innerHTML = '<div class="message info">No active rooms</div>';
-                return;
-            }
-
-            for (const [roomId, room] of Object.entries(rooms)) {
-                const roomDiv = document.createElement('div');
-                roomDiv.className = 'room-info';
-                
-                const playerCount = room.players ? room.players.length : 0;
-                const activePlayers = room.players ? room.players.filter(p => p.status === 'active').length : 0;
-                const gameStatus = room.game_started ? (room.game_over ? 'Finished' : 'In Progress') : 'Waiting';
-                
-                roomDiv.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <strong>Room: ${roomId}</strong><br>
-                            <span style="font-size: 0.9em; color: #888;">
-                                Players: ${activePlayers}/${playerCount} | Status: ${gameStatus}<br>
-                                ${room.current_prompt ? `Prompt: "${room.current_prompt}"` : ''}
-                            </span>
-                        </div>
-                    </div>
-                `;
-                
-                container.appendChild(roomDiv);
-            }
-        }
-
-        function updatePlayerList(rooms) {
-            const container = document.getElementById('playerList');
-            container.innerHTML = '';
-
-            let allPlayers = [];
-            for (const [roomId, room] of Object.entries(rooms)) {
-                if (room.players) {
-                    room.players.forEach(player => {
-                        allPlayers.push({
-                            ...player,
-                            roomId: roomId
-                        });
-                    });
-                }
-            }
-
-            if (allPlayers.length === 0) {
-                container.innerHTML = '<div class="message info">No players online</div>';
-                return;
-            }
-
-            allPlayers.forEach(player => {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = 'player-item';
-                
-                playerDiv.innerHTML = `
-                    <div class="player-info">
-                        <div class="player-username">${player.username}</div>
-                        <div class="player-room">Room: ${player.roomId} | Lives: ${player.lives} | Score: ${player.score}</div>
-                    </div>
-                    <div class="player-actions">
-                        <button class="btn btn-kick" onclick="kickPlayer('${player.player_id}', '${player.roomId}', '${player.username}')">Kick</button>
-                        <button class="btn btn-ban" onclick="banPlayer('${player.player_id}', '${player.roomId}', '${player.username}')">Ban</button>
-                    </div>
-                `;
-                
-                container.appendChild(playerDiv);
-            });
-        }
-
-        function updateBannedUsers(bannedUsers) {
-            const container = document.getElementById('bannedUsers');
-            container.innerHTML = '';
-
-            if (bannedUsers.length === 0) {
-                container.innerHTML = '<div class="message info">No banned users</div>';
-                return;
-            }
-
-            bannedUsers.forEach(username => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'banned-user';
-                userDiv.textContent = username;
-                container.appendChild(userDiv);
-            });
-        }
-
-        function updateActionLog(actionLog) {
-            const container = document.getElementById('actionLog');
-            container.innerHTML = '';
-
-            if (!actionLog || actionLog.length === 0) {
-                container.innerHTML = '<div class="message info">No actions yet</div>';
-                return;
-            }
-
-            // Show most recent first
-            actionLog.slice().reverse().forEach(logEntry => {
-                const logDiv = document.createElement('div');
-                logDiv.className = 'log-entry';
-                logDiv.textContent = logEntry;
-                container.appendChild(logDiv);
-            });
-        }
-
-        function addToActionLog(logEntry) {
-            const container = document.getElementById('actionLog');
-            const logDiv = document.createElement('div');
-            logDiv.className = 'log-entry';
-            logDiv.textContent = logEntry;
-            
-            // Add to top
-            if (container.firstChild) {
-                container.insertBefore(logDiv, container.firstChild);
-            } else {
-                container.appendChild(logDiv);
-            }
-        }
-
-        function kickPlayer(playerId, roomId, username) {
-            if (confirm(`Kick player "${username}" from room ${roomId}?`)) {
-                socket.emit('admin_kick_player', {
-                    player_id: playerId,
-                    room_id: roomId,
-                    admin_name: 'яадмін'
-                });
-            }
-        }
-
-        function banPlayer(playerId, roomId, username) {
-            if (confirm(`BAN player "${username}"? This will also kick them and prevent future joins.`)) {
-                socket.emit('admin_ban_player', {
-                    player_id: playerId,
-                    room_id: roomId,
-                    username: username,
-                    admin_name: 'яадмін'
-                });
-            }
-        }
-
-        function refreshData() {
-            if (adminAuthenticated) {
-                socket.emit('admin_get_state');
-                showActionMessage('Data refreshed', 'success');
-            }
-        }
-
-        function clearActionLog() {
-            if (confirm('Clear action log? This cannot be undone.')) {
-                const container = document.getElementById('actionLog');
-                container.innerHTML = '<div class="message info">No actions yet</div>';
-                showActionMessage('Action log cleared', 'success');
-            }
-        }
-
-        // Handle Enter key in password field
-        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+        document.getElementById('wordInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                adminLogin();
+                submitWord();
             }
         });
 
-        // Auto-refresh every 10 seconds
-        setInterval(() => {
-            if (adminAuthenticated) {
-                socket.emit('admin_get_state');
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                createRoom();
             }
-        }, 10000);
+        });
+
+        document.getElementById('roomCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                joinRoom();
+            }
+        });
     </script>
 </body>
 </html>
