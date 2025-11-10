@@ -21,7 +21,7 @@ banned_users = set()
 admin_actions_log = []
 admin_sessions = {}
 
-ADMIN_PASSWORD = "admin123"  # Change this in production
+ADMIN_PASSWORD = "TimaPolinaEva1407_"  # Change this in production
 INITIAL_LIVES = 2
 TURN_TIME = 15
 MIN_PLAYERS = 2
@@ -356,6 +356,15 @@ class GameRoom:
         self.current_turn_index = (self.current_turn_index + 1) % len(active_players)
         self.current_prompt = generate_prompt()
         self.timer_end_time = time.time() + TURN_TIME
+        
+        # Log turn switch
+        current_player = self.get_current_player()
+        if current_player:
+            timestamp = datetime.now().strftime("[%H:%M CEST]")
+            log_entry = f"{timestamp} TURN: {current_player.username}'s turn started"
+            admin_actions_log.append(log_entry)
+            socketio.emit('admin_log_update', {'log_entry': log_entry})
+        
         return self.get_current_player()
     
     def start_game(self):
@@ -368,6 +377,13 @@ class GameRoom:
             for player in self.players:
                 player.lives = INITIAL_LIVES
                 player.status = 'active'
+            
+            # Log game start
+            timestamp = datetime.now().strftime("[%H:%M CEST]")
+            log_entry = f"{timestamp} GAME: Game started in room {self.room_id}"
+            admin_actions_log.append(log_entry)
+            socketio.emit('admin_log_update', {'log_entry': log_entry})
+            
             return True
         return False
     
@@ -378,12 +394,12 @@ class GameRoom:
     
         word_lower = word.lower().strip()
     
-        banned_words = ['russia', 'russian', 'russians', 'putin', 'vladimir', 'israel', 'israeli', 'israelis', 'neger', 'nigga', 'nigger']
+        banned_words = ['putin', 'neger', 'nigga', 'nigger']
         if word_lower in banned_words:
             current_player.lives -= 1
             if current_player.lives <= 0:
                 current_player.status = 'eliminated'
-                return {'success': False, 'message': 'You\'re a bitch - you lose a life!'}
+                return {'success': False, 'message': 'Forbidden word - you lose a life!'}
     
         if word_lower in self.used_words:
             return {'success': False, 'message': 'Word already used'}
@@ -393,6 +409,13 @@ class GameRoom:
     
         self.used_words.add(word_lower)
         current_player.score += 1
+        
+        # Log word submission
+        timestamp = datetime.now().strftime("[%H:%M CEST]")
+        log_entry = f"{timestamp} WORD: {current_player.username} submitted '{word}'"
+        admin_actions_log.append(log_entry)
+        socketio.emit('admin_log_update', {'log_entry': log_entry})
+        
         return {'success': True}
     
     def handle_bomb_explosion(self):
@@ -445,13 +468,27 @@ def handle_disconnect():
         player_info = players[sid]
         room_id = player_info['room_id']
         if room_id in rooms:
-            rooms[room_id].remove_player(player_info['player_id'])
+            room = rooms[room_id]
+            player_to_remove = None
+            for player in room.players:
+                if player.player_id == player_info['player_id']:
+                    player_to_remove = player
+                    break
+            
+            if player_to_remove:
+                # Log player leave
+                timestamp = datetime.now().strftime("[%H:%M CEST]")
+                log_entry = f"{timestamp} LEAVE: {player_to_remove.username} left room {room_id}"
+                admin_actions_log.append(log_entry)
+                socketio.emit('admin_log_update', {'log_entry': log_entry})
+            
+            room.remove_player(player_info['player_id'])
             socketio.emit('player_left', {
                 'player_id': player_info['player_id'],
-                'game_state': rooms[room_id].get_state()
+                'game_state': room.get_state()
             }, room=room_id)
             
-            if len(rooms[room_id].players) == 0:
+            if len(room.players) == 0:
                 if room_id in timers:
                     try:
                         timers[room_id].kill()
@@ -483,6 +520,13 @@ def handle_create_room(data):
     players[request.sid] = {'player_id': player_id, 'room_id': room_id}
     
     join_room(room_id)
+    
+    # Log room creation
+    timestamp = datetime.now().strftime("[%H:%M CEST]")
+    log_entry = f"{timestamp} ROOM: {username} created room {room_id}"
+    admin_actions_log.append(log_entry)
+    socketio.emit('admin_log_update', {'log_entry': log_entry})
+    
     emit('room_created', {'room_id': room_id, 'game_state': room.get_state()})
 
 @socketio.on('join_room')
@@ -510,6 +554,13 @@ def handle_join_room(data):
     if room.add_player(player):
         players[request.sid] = {'player_id': player_id, 'room_id': room_id}
         join_room(room_id)
+        
+        # Log player join
+        timestamp = datetime.now().strftime("[%H:%M CEST]")
+        log_entry = f"{timestamp} JOIN: {username} joined room {room_id}"
+        admin_actions_log.append(log_entry)
+        socketio.emit('admin_log_update', {'log_entry': log_entry})
+        
         emit('room_joined', {'game_state': room.get_state()})
         socketio.emit('player_joined', {'game_state': room.get_state()}, room=room_id)
     else:
@@ -605,7 +656,7 @@ def handle_admin_kick(data):
         
         if player_to_kick:
             # Log the action
-            timestamp = datetime.now().strftime("[%H:%M CET]")
+            timestamp = datetime.now().strftime("[%H:%M CEST]")
             log_entry = f"{timestamp} KICK: {player_to_kick.username} kicked by {admin_name}"
             admin_actions_log.append(log_entry)
             
@@ -628,6 +679,9 @@ def handle_admin_kick(data):
             socketio.emit('admin_game_state_update', {
                 'rooms': {room_id: room.get_state()}
             }, namespace='/', skip_sid=session_id)
+            
+            # Send log update to all admin panels
+            socketio.emit('admin_log_update', {'log_entry': log_entry}, namespace='/', skip_sid=session_id)
 
 @socketio.on('admin_ban_player')
 def handle_admin_ban(data):
@@ -646,7 +700,7 @@ def handle_admin_ban(data):
         banned_users.add(username.lower())
         
         # Log the action
-        timestamp = datetime.now().strftime("[%H:%M CET]")
+        timestamp = datetime.now().strftime("[%H:%M CEST]")
         log_entry = f"{timestamp} BAN: {username} added to banned list by {admin_name}"
         admin_actions_log.append(log_entry)
         
@@ -671,6 +725,9 @@ def handle_admin_ban(data):
             'banned_users': list(banned_users),
             'log_entry': log_entry
         }, namespace='/', skip_sid=session_id)
+        
+        # Send log update to all admin panels
+        socketio.emit('admin_log_update', {'log_entry': log_entry}, namespace='/', skip_sid=session_id)
 
 @socketio.on('admin_get_state')
 def handle_admin_get_state():
@@ -686,6 +743,17 @@ def handle_admin_get_state():
     emit('admin_state_update', {
         'rooms': room_states,
         'banned_users': list(banned_users),
+        'action_log': admin_actions_log[-50:]
+    })
+
+@socketio.on('admin_log_update')
+def handle_admin_log_update():
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    emit('admin_state_update', {
         'action_log': admin_actions_log[-50:]
     })
 
@@ -711,6 +779,12 @@ def start_timer(room_id):
             if remaining == 0:
                 exploded_player = current_room.handle_bomb_explosion()
                 if exploded_player:
+                    # Log bomb explosion
+                    timestamp = datetime.now().strftime("[%H:%M CEST]")
+                    log_entry = f"{timestamp} BOMB: {exploded_player.username} lost a life (timeout)"
+                    admin_actions_log.append(log_entry)
+                    socketio.emit('admin_log_update', {'log_entry': log_entry})
+                    
                     socketio.emit('bomb_exploded', {
                         'player_id': exploded_player.player_id,
                         'game_state': current_room.get_state()
@@ -720,6 +794,16 @@ def start_timer(room_id):
                 if len(active_players) <= 1:
                     current_room.game_over = True
                     winner = active_players[0] if active_players else None
+                    
+                    # Log game over
+                    timestamp = datetime.now().strftime("[%H:%M CEST]")
+                    if winner:
+                        log_entry = f"{timestamp} WIN: {winner.username} won the game in room {room_id}"
+                    else:
+                        log_entry = f"{timestamp} GAME: Game ended in room {room_id}"
+                    admin_actions_log.append(log_entry)
+                    socketio.emit('admin_log_update', {'log_entry': log_entry})
+                    
                     socketio.emit('game_over', {
                         'winner': {
                             'player_id': winner.player_id,
