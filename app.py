@@ -46,6 +46,7 @@ def load_word_list():
         'basis', 'battle', 'beach', 'bear', 'beat', 'beautiful', 'because', 'become', 'bee', 'been', 'before',
         'begin', 'behavior', 'behind', 'being', 'belief', 'believe', 'bell', 'belong', 'below', 'bench',
         'bend', 'beneath', 'benefit', 'beside', 'best', 'better', 'between', 'beyond', 'bike', 'bill',
+        'bed', 'ice', 'see',
         'bind', 'bird', 'birth', 'bite', 'bitter', 'black', 'blade', 'blame', 'blank', 'blind',
         'block', 'blood', 'blow', 'blue', 'board', 'boat', 'body', 'boil', 'bold', 'bomb',
         'bond', 'bone', 'book', 'boom', 'boot', 'border', 'born', 'boss', 'both', 'bother',
