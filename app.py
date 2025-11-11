@@ -55,6 +55,7 @@ def load_word_list():
         'business', 'busy', 'butter', 'button', 'cake', 'call', 'calm', 'camera', 'camp', 'campaign',
         'cancel', 'cancer', 'candidate', 'capacity', 'capital', 'captain', 'capture', 'carbon', 'card', 'care',
         'career', 'careful', 'carry', 'case', 'cash', 'cast', 'catch', 'category', 'cause', 'ceiling',
+        'lit', 'pit', 'fit', 'bit', 'hit', 'bath', 'thoth',
         'celebrate', 'cell', 'center', 'central', 'century', 'ceremony', 'certain', 'chain', 'chair', 'challenge',
         'chamber', 'champion', 'chance', 'change', 'channel', 'chapter', 'character', 'charge', 'charity', 'chart',
         'chase', 'cheap', 'check', 'cheese', 'chemical', 'chest', 'chicken', 'chief', 'child', 'childhood',
@@ -230,7 +231,7 @@ def load_word_list():
         'simply', 'simulation', 'simultaneously', 'since', 'sing', 'singer', 'single', 'sink', 'sister', 'site',
         'situation', 'size', 'skill', 'skin', 'skip', 'skull', 'sleep', 'slice', 'slide', 'slight',
         'slightly', 'slip', 'slow', 'slowly', 'small', 'smart', 'smell', 'smile', 'smoke', 'smooth',
-        'snap', 'snow', 'so', 'soap', 'soccer', 'social', 'society', 'soft', 'software', 'soil',
+        'snap', 'snow', 'so', 'soap', 'soccer', 'social', 'society', 'soft', 'software', 'soil', 'her', 'bit', 'bat', 'hat',
         'solar', 'soldier', 'solid', 'solution', 'solve', 'some', 'somebody', 'somehow', 'someone', 'something',
         'sometimes', 'somewhat', 'somewhere', 'song', 'soon', 'sophisticated', 'sorry', 'sort', 'soul', 'sound',
         'soup', 'source', 'south', 'southern', 'space', 'span', 'speak', 'speaker', 'special', 'specialist',
@@ -394,7 +395,7 @@ class GameRoom:
     
         word_lower = word.lower().strip()
     
-        banned_words = ['putin', 'neger', 'nigga', 'nigger']
+        banned_words = ['putin', 'neger', 'nigga', 'nigger', 'vladimir', 'israel', 'israeli', 'israelis', 'russia', 'russian', 'russians']
         if word_lower in banned_words:
             current_player.lives -= 1
             if current_player.lives <= 0:
