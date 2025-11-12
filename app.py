@@ -28,10 +28,13 @@ MIN_PLAYERS = 2
 MAX_PLAYERS = 16
 
 WORDS_FILE = os.path.join(os.path.dirname(__file__), "words.txt")
+NOUNS_FILE = os.path.join(os.path.dirname(__file__), "nounlist.txt")
 
 def load_word_list():
     with open(WORDS_FILE, "r", encoding="utf-8") as f:
         dwyl_words = f.read().splitlines()
+    with open(NOUNS_FILE, "r", encoding="utf-8") as f2:
+        noun_words = f2.read().splitlines()
     common_words = set([
         'about', 'above', 'abuse', 'accept', 'accident', 'account', 'across', 'action', 'active', 'actor',
         'actual', 'adapt', 'added', 'admit', 'adopt', 'adult', 'advance', 'advice', 'affair', 'affect',
@@ -288,7 +291,7 @@ def load_word_list():
         'afghanistan','albania','algeria','andorra','angola','argentina','armenia','australia','austria','azerbaijan','bahamas','bahrain','bangladesh','barbados','belarus','belgium','belize','benin','bhutan','bolivia','bosnia','botswana','brazil','brunei','bulgaria','burundi','cambodia','cameroon','canada','chad','chile','china','colombia','comoros','congo','croatia','cuba','cyprus','czechia','denmark','djibouti','dominica','dominica','ecuador','egypt','salvador','guinea','eritrea','estonia','eswatini','ethiopia','fiji','finland','france','gabon','gambia','georgia','germany','ghana','greece','grenada','guatemala','guyana','haiti','honduras','hungary','iceland','india','indonesia','iran','iraq','ireland','italy','jamaica','japan','jordan','kazakhstan','kenya','kiribati','kosovo','kuwait','kyrgyzstan','laos','latvia','lebanon','lesotho','liberia','libya','liechtenstein','lithuania','luxembourg','madagascar','malawi','malaysia','maldives','mali','malta','mauritania','mauritius','mexico','micronesia','moldova','monaco','mongolia','montenegro','morocco','mozambique','myanmar','namibia','nauru','nepal','netherlands','new zealand','nicaragua','niger','nigeria','macedonia','norway','oman','pakistan','palau','palestine','panama','paraguay','peru','philippines','poland','portugal','qatar','romania','rwanda','samoa','san marino','saudi','senegal','serbia','seychelles','singapore','slovakia','slovenia','somalia','spain','sudan','suriname','sweden','switzerland','syria','taiwan','tajikistan','tanzania','thailand','togo','tonga','tunisia','turkey','turkmenistan','tuvalu','uganda','ukraine','uae','uk','usa','uruguay','uzbekistan','vanuatu','vatican','venezuela','vietnam','yemen','zambia','zimbabwe',
         'lesbian', 'wrath', 'row', 'deevaluation', 'reevaluation', 'evaluation', 'retry', 'ban', 'deevaluate', 'reeducate', 'reevaluate', 'evaluate', 'educate', 'educator', 'car', 'israel', 'israeli', 'israelis', 'putin', 'vladimir', 'russia', 'russian', 'russians', 'nigga', 'neger', 'nigger'
     ])
-    words = list(set(list(common_words) + dwyl_words))
+    words = list(set(list(common_words) + dwyl_words + noun_words))
     return words
 
 WORD_LIST = load_word_list()
