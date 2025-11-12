@@ -49,7 +49,7 @@ def load_word_list():
         'basis', 'battle', 'beach', 'bear', 'beat', 'beautiful', 'because', 'become', 'bee', 'been', 'before',
         'begin', 'behavior', 'behind', 'being', 'belief', 'believe', 'bell', 'belong', 'below', 'bench',
         'bend', 'beneath', 'benefit', 'beside', 'best', 'better', 'between', 'beyond', 'bike', 'bill',
-        'bed', 'ice', 'see',
+        'bed', 'ice', 'see', 'grope', 'clanker', 'heroin', 'hemorrhoids', 'clankers', 'shart', 'shithead', 'bits',
         'bind', 'bird', 'birth', 'bite', 'bitter', 'black', 'blade', 'blame', 'blank', 'blind',
         'block', 'blood', 'blow', 'blue', 'board', 'boat', 'body', 'boil', 'bold', 'bomb',
         'bond', 'bone', 'book', 'boom', 'boot', 'border', 'born', 'boss', 'both', 'bother',
@@ -259,6 +259,7 @@ def load_word_list():
         'terms', 'terrible', 'territory', 'terror', 'terrorism', 'terrorist', 'test', 'testify', 'testimony', 'testing',
         'text', 'than', 'thank', 'that', 'theater', 'their', 'them', 'theme', 'themselves', 'then',
         'theory', 'therapy', 'there', 'therefore', 'these', 'they', 'thick', 'thin', 'thing', 'think',
+        'micro', 'mice', 'kirkify', 'kirkified', 'kirkifies',
         'thinking', 'third', 'thirty', 'this', 'thorn', 'those', 'though', 'thought', 'thousand', 'threat', 'threaten',
         'three', 'throat', 'through', 'throughout', 'throw', 'thus', 'ticket', 'tide', 'tight', 'time',
         'tiny', 'tire', 'tired', 'tissue', 'title', 'tobacco', 'today', 'together', 'tomato', 'tomorrow',
@@ -284,7 +285,7 @@ def load_word_list():
         'which', 'while', 'whisper', 'white', 'whole', 'whom', 'whose', 'wide', 'widely', 'widespread',
         'wife', 'wild', 'will', 'willing', 'wind', 'window', 'wine', 'wing', 'winner', 'winter',
         'wipe', 'wire', 'wisdom', 'wise', 'wish', 'with', 'withdraw', 'within', 'without', 'witness',
-        'woman', 'wonder', 'wonderful', 'wood', 'wooden', 'word', 'work', 'worker', 'working', 'works',
+        'woman', 'wonder', 'wonderful', 'wood', 'wooden', 'word', 'work', 'worker', 'working', 'works', 'fuckface', 'roy dismey',
         'workshop', 'world', 'worried', 'worry', 'worth', 'would', 'wound', 'wrap', 'write', 'writer',
         'writing', 'wrong', 'yard', 'yeah', 'year', 'yell', 'yellow', 'yesterday', 'yield', 'young', 'necktie', 'tie', 'establishment', 'mess', 'reestablishment', 'reoccupation',
         'your', 'yours', 'yourself', 'youth', 'zone', 'tetris','emil','antidisestablishmentarianism','supercalifragilisticexpialidocious','hippopotomonstrosesquippedaliophobia','mitochondria','pneumoultramicroscopicsilicovolcanoconiosis','uzbekistan','azerbaijan','liechtenstein','kyrgyzstan','yugoslavia','transnistria','djibouti','bratislava','quebecois','zanzibar','chisinau','timbuktu','valparaíso','saskatchewan','honshu','kamchatka','ulaanbaatar','onyx','attractions','insulin','culinary','escherichia','xenotransplantation','floccinaucinihilipilification','honorificabilitudinitatibus','thyroparathyroidectomized','electroencephalographically','counterdemonstration','uncharacteristically','incomprehensibilities','disproportionableness','circumlocution','sesquipedalian','otorhinolaryngological','spectrophotofluorometrically','psychoneuroendocrinological','hepaticocholangiocholecystenterostomies','laryngotracheobronchitis','pancreaticoduodenostomy','dichlorodifluoromethane','tetrahydrocannabinol','archaeopteryx','brachiosaurus','pachycephalosaurus','micropachycephalosaurus', 'tage', 'tymofii', 'oscar', 'omar', 'or', 'lore', 'ore', 'oar',
@@ -399,7 +400,7 @@ class GameRoom:
     
         word_lower = word.lower().strip()
     
-        banned_words = ['putin', 'neger', 'nigga', 'nigger', 'vladimir', 'israel', 'israeli', 'israelis', 'russia', 'russian', 'russians']
+        banned_words = []
         if word_lower in banned_words:
             current_player.lives -= 1
             if current_player.lives <= 0:
@@ -786,7 +787,10 @@ def start_timer(room_id):
                 if exploded_player:
                     # Log bomb explosion
                     timestamp = datetime.now().strftime("[%H:%M CEST]")
-                    log_entry = f"{timestamp} BOMB: {exploded_player.username} lost a life (timeout)"
+                    if exploded_player.lives <= 0:
+                        log_entry = f"{timestamp} ELIMINATED: {exploded_player.username} was eliminated (timeout)"
+                    else:
+                        log_entry = f"{timestamp} BOMB: {exploded_player.username} lost a life (timeout)"
                     admin_actions_log.append(log_entry)
                     socketio.emit('admin_log_update', {'log_entry': log_entry})
                     
@@ -794,6 +798,9 @@ def start_timer(room_id):
                         'player_id': exploded_player.player_id,
                         'game_state': current_room.get_state()
                     }, room=room_id)
+                
+                # Add a small delay to allow clients to process the bomb explosion
+                eventlet.sleep(0.5)
                 
                 active_players = current_room.get_active_players()
                 if len(active_players) <= 1:
@@ -821,11 +828,22 @@ def start_timer(room_id):
                         del timers[room_id]
                     return
                 
-                current_room.next_turn()
-                socketio.emit('next_turn', {'game_state': current_room.get_state()}, room=room_id)
-                if room_id in timers:
-                    del timers[room_id]
-                start_timer(room_id)
+                # Move to next turn
+                next_player = current_room.next_turn()
+                if next_player:
+                    socketio.emit('next_turn', {'game_state': current_room.get_state()}, room=room_id)
+                    if room_id in timers:
+                        del timers[room_id]
+                    start_timer(room_id)
+                else:
+                    # No next player (game should have ended)
+                    current_room.game_over = True
+                    socketio.emit('game_over', {
+                        'winner': None,
+                        'game_state': current_room.get_state()
+                    }, room=room_id)
+                    if room_id in timers:
+                        del timers[room_id]
                 return
             
             eventlet.sleep(1)
@@ -838,6 +856,5 @@ def start_timer(room_id):
     
     timer = eventlet.spawn(timer_callback)
     timers[room_id] = timer
-
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
