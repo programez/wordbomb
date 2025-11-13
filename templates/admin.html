@@ -614,23 +614,6 @@
             });
         }
 
-        function updateBannedUsers(bannedUsers) {
-            const container = document.getElementById('bannedUsers');
-            container.innerHTML = '';
-
-            if (bannedUsers.length === 0) {
-                container.innerHTML = '<div class="message info">No banned users</div>';
-                return;
-            }
-
-            bannedUsers.forEach(username => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'banned-user';
-                userDiv.textContent = username;
-                container.appendChild(userDiv);
-            });
-        }
-
         function updateActionLog(actionLog) {
             const container = document.getElementById('actionLog');
             container.innerHTML = '';
