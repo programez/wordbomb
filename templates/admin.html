@@ -347,6 +347,17 @@
             </div>
 
             <div class="section">
+                <h2>📢 Send Announcement</h2>
+                <div style="display: flex; gap: 10px; flex-direction: column;">
+                    <input type="text" id="announcementMessage" placeholder="Enter announcement message" style="width: 100%; padding: 8px; background: #0a0a0a; border: 1px solid #00ff00; color: #00ff00;">
+                    <select id="announcementTarget" style="width: 100%; padding: 8px; background: #0a0a0a; border: 1px solid #00ff00; color: #00ff00;">
+                        <option value="all">All Rooms (Global)</option>
+                    </select>
+                    <button class="btn" onclick="sendAnnouncement()" style="background: #ff00ff; color: #0a0a0a;">Send Announcement</button>
+                </div>
+            </div>
+
+            <div class="section">
                 <h2>📋 Action Log</h2>
                 <div class="action-log" id="actionLog">
                     <div class="message info">No actions yet</div>
