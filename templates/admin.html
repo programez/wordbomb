@@ -459,12 +459,80 @@
                 document.body.removeChild(messageDiv);
             }, 3000);
         }
+        
+        function sendAnnouncement() {
+            const message = document.getElementById('announcementMessage').value;
+            const target = document.getElementById('announcementTarget').value;
+    
+            if (!message) {
+                showActionMessage('Please enter a message', 'error');
+                return;
+            }
+    
+            socket.emit('admin_send_announcement', {
+                message: message,
+                room_id: target,
+                admin_name: 'Admin'
+            });
+    
+            document.getElementById('announcementMessage').value = '';
+        }
 
+        function unbanPlayer(username) {
+            if (confirm(`Unban player "${username}"? They will be able to join games again.`)) {
+                socket.emit('admin_unban_player', {
+                    username: username,
+                    admin_name: 'Admin'
+                });
+            }
+        }
+
+        // Update the banned users display to include unban buttons
+        function updateBannedUsers(bannedUsers) {
+            const container = document.getElementById('bannedUsers');
+            container.innerHTML = '';
+
+            if (bannedUsers.length === 0) {
+                container.innerHTML = '<div class="message info">No banned users</div>';
+                return;
+            }
+
+            bannedUsers.forEach(username => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'banned-user';
+                userDiv.innerHTML = `
+                    <div style="flex: 1;">${username}</div>
+                    <button class="btn" onclick="unbanPlayer('${username}')" style="background: #00cc00; color: white;">Unban</button>
+                `;
+                container.appendChild(userDiv);
+            });
+        }
+
+        // Update announcement targets when rooms change
+        function updateAnnouncementTargets(rooms) {
+            const select = document.getElementById('announcementTarget');
+    
+            // Keep the "All Rooms" option
+            const allOption = select.querySelector('option[value="all"]');
+            select.innerHTML = '';
+            select.appendChild(allOption);
+    
+            // Add specific room options
+            for (const roomId in rooms) {
+                const option = document.createElement('option');
+                option.value = roomId;
+                option.textContent = `Room: ${roomId}`;
+                select.appendChild(option);
+            }
+        }
+
+        // Update the updateAdminPanel function
         function updateAdminPanel(data) {
             updateRoomsList(data.rooms);
             updatePlayerList(data.rooms);
             updateBannedUsers(data.banned_users);
             updateActionLog(data.action_log);
+            updateAnnouncementTargets(data.rooms); // Add this line
         }
 
         function updateRoomsList(rooms) {
