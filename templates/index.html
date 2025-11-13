@@ -490,6 +490,35 @@
             alert(data.message);
         });
 
+        socket.on('admin_announcement', (data) => {
+            const announcementDiv = document.createElement('div');
+            announcementDiv.className = 'message info';
+            announcementDiv.style.background = '#fff3cd';
+            announcementDiv.style.color = '#856404';
+            announcementDiv.style.border = '2px solid #ffeaa7';
+            announcementDiv.style.fontWeight = 'bold';
+            announcementDiv.style.fontSize = '1.1em';
+    
+            if (data.type === 'global') {
+                announcementDiv.innerHTML = `📢 <strong>GLOBAL ANNOUNCEMENT from ${data.from}:</strong> ${data.message}`;
+            } else {
+                announcementDiv.innerHTML = `📢 <strong>ANNOUNCEMENT from ${data.from}:</strong> ${data.message}`;
+            }
+    
+            // Add to current screen
+            const currentScreen = document.querySelector('.menu-screen.active, .lobby-screen.active, .game-screen.active');
+            if (currentScreen) {
+                currentScreen.insertBefore(announcementDiv, currentScreen.firstChild);
+            }
+    
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (announcementDiv.parentNode) {
+                    announcementDiv.parentNode.removeChild(announcementDiv);
+                }
+            }, 10000);
+        });
+
         function createRoom() {
             const username = document.getElementById('username').value.trim() || 'Player';
             socket.emit('create_room', { username });
