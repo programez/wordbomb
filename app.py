@@ -735,6 +735,95 @@ def handle_admin_ban(data):
         # Send log update to all admin panels
         socketio.emit('admin_log_update', {'log_entry': log_entry}, namespace='/', skip_sid=session_id)
 
+@socketio.on('admin_unban_player')
+def handle_admin_unban(data):
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    username = data.get('username')
+    admin_name = data.get('admin_name', 'Admin')
+    
+    if username and username.lower() in banned_users:
+        # Remove from banned list
+        banned_users.remove(username.lower())
+        
+        # Log the action
+        timestamp = datetime.now().strftime("[%H:%M CEST]")
+        log_entry = f"{timestamp} UNBAN: {username} removed from banned list by {admin_name}"
+        admin_actions_log.append(log_entry)
+        
+        # Notify admin panel
+        emit('admin_action_success', {
+            'message': f'Unbanned {username}',
+            'log_entry': log_entry,
+            'banned_users': list(banned_users)
+        })
+        
+        # Update all admin panels
+        socketio.emit('admin_banned_users_update', {
+            'banned_users': list(banned_users),
+            'log_entry': log_entry
+        }, namespace='/', skip_sid=session_id)
+        
+        # Send log update to all admin panels
+        socketio.emit('admin_log_update', {'log_entry': log_entry}, namespace='/', skip_sid=session_id)
+    else:
+        emit('admin_error', {'message': f'User {username} is not banned'})
+
+# Add this new socket handler for announcements
+@socketio.on('admin_send_announcement')
+def handle_admin_announcement(data):
+    session_id = request.sid
+    if session_id not in admin_sessions or not admin_sessions[session_id].authenticated:
+        emit('admin_error', {'message': 'Not authenticated'})
+        return
+    
+    message = data.get('message')
+    target_room = data.get('room_id')  # 'all' for all rooms, or specific room ID
+    admin_name = data.get('admin_name', 'Admin')
+    
+    if not message:
+        emit('admin_error', {'message': 'No message provided'})
+        return
+    
+    # Log the announcement
+    timestamp = datetime.now().strftime("[%H:%M CEST]")
+    if target_room == 'all':
+        log_entry = f"{timestamp} ANNOUNCEMENT: {admin_name} sent global announcement: {message}"
+        # Send to all rooms
+        for room_id in rooms:
+            socketio.emit('admin_announcement', {
+                'message': message,
+                'from': admin_name,
+                'type': 'global'
+            }, room=room_id)
+    else:
+        log_entry = f"{timestamp} ANNOUNCEMENT: {admin_name} sent announcement to room {target_room}: {message}"
+        # Send to specific room
+        if target_room in rooms:
+            socketio.emit('admin_announcement', {
+                'message': message,
+                'from': admin_name,
+                'type': 'room'
+            }, room=target_room)
+        else:
+            emit('admin_error', {'message': f'Room {target_room} not found'})
+            return
+    
+    admin_actions_log.append(log_entry)
+    
+    # Notify admin panel
+    emit('admin_action_success', {
+        'message': f'Announcement sent to {target_room}',
+        'log_entry': log_entry
+    })
+    
+    # Send log update to all admin panels
+    socketio.emit('admin_log_update', {'log_entry': log_entry}, namespace='/', skip_sid=session_id)
+
+
 @socketio.on('admin_get_state')
 def handle_admin_get_state():
     session_id = request.sid
