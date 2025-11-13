@@ -505,10 +505,18 @@
                 announcementDiv.innerHTML = `📢 <strong>ANNOUNCEMENT from ${data.from}:</strong> ${data.message}`;
             }
     
-            // Add to current screen
-            const currentScreen = document.querySelector('.menu-screen.active, .lobby-screen.active, .game-screen.active');
-            if (currentScreen) {
-                currentScreen.insertBefore(announcementDiv, currentScreen.firstChild);
+            // Add to both menu and game screens
+            const menuScreen = document.querySelector('.menu-screen');
+            const gameScreen = document.querySelector('.game-screen');
+            const lobbyScreen = document.querySelector('.lobby-screen');
+    
+            if (menuScreen.classList.contains('active')) {
+                menuScreen.insertBefore(announcementDiv, menuScreen.firstChild);
+            } else if (lobbyScreen.classList.contains('active')) {
+                lobbyScreen.insertBefore(announcementDiv, lobbyScreen.firstChild);
+            } else if (gameScreen.classList.contains('active')) {
+                const gameMessage = document.getElementById('gameMessage');
+                gameMessage.appendChild(announcementDiv);
             }
     
             // Auto-remove after 10 seconds
