@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import random
 import string
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import json
 
@@ -20,6 +20,7 @@ timers = {}
 banned_users = set()
 admin_actions_log = []
 admin_sessions = {}
+CEST = timezone(timedelta(hours=2))
 
 ADMIN_PASSWORD = "TimaPolinaEva1407_"  # Change this in production
 INITIAL_LIVES = 2
@@ -366,7 +367,7 @@ class GameRoom:
         # Log turn switch
         current_player = self.get_current_player()
         if current_player:
-            timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+            timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
             log_entry = f"{timestamp} TURN: {current_player.username}'s turn started"
             admin_actions_log.append(log_entry)
             socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -385,7 +386,7 @@ class GameRoom:
                 player.status = 'active'
             
             # Log game start
-            timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+            timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
             log_entry = f"{timestamp} GAME: Game started in room {self.room_id}"
             admin_actions_log.append(log_entry)
             socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -417,7 +418,7 @@ class GameRoom:
         current_player.score += 1
         
         # Log word submission
-        timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+        timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
         log_entry = f"{timestamp} WORD: {current_player.username} submitted '{word}'"
         admin_actions_log.append(log_entry)
         socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -483,7 +484,7 @@ def handle_disconnect():
             
             if player_to_remove:
                 # Log player leave
-                timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+                timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
                 log_entry = f"{timestamp} LEAVE: {player_to_remove.username} left room {room_id}"
                 admin_actions_log.append(log_entry)
                 socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -528,7 +529,7 @@ def handle_create_room(data):
     join_room(room_id)
     
     # Log room creation
-    timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+    timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
     log_entry = f"{timestamp} ROOM: {username} created room {room_id}"
     admin_actions_log.append(log_entry)
     socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -562,7 +563,7 @@ def handle_join_room(data):
         join_room(room_id)
         
         # Log player join
-        timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+        timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
         log_entry = f"{timestamp} JOIN: {username} joined room {room_id}"
         admin_actions_log.append(log_entry)
         socketio.emit('admin_log_update', {'log_entry': log_entry})
@@ -662,7 +663,7 @@ def handle_admin_kick(data):
         
         if player_to_kick:
             # Log the action
-            timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+            timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
             log_entry = f"{timestamp} KICK: {player_to_kick.username} kicked by {admin_name}"
             admin_actions_log.append(log_entry)
             
@@ -706,7 +707,7 @@ def handle_admin_ban(data):
         banned_users.add(username.lower())
         
         # Log the action
-        timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+        timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
         log_entry = f"{timestamp} BAN: {username} added to banned list by {admin_name}"
         admin_actions_log.append(log_entry)
         
@@ -750,7 +751,7 @@ def handle_admin_unban(data):
         banned_users.remove(username.lower())
         
         # Log the action
-        timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+        timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
         log_entry = f"{timestamp} UNBAN: {username} removed from banned list by {admin_name}"
         admin_actions_log.append(log_entry)
         
@@ -789,7 +790,7 @@ def handle_admin_announcement(data):
         return
     
     # Log the announcement
-    timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+    timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
     if target_room == 'all':
         log_entry = f"{timestamp} ANNOUNCEMENT: {admin_name} sent global announcement: {message}"
         # Send to all rooms
@@ -875,7 +876,7 @@ def start_timer(room_id):
                 exploded_player = current_room.handle_bomb_explosion()
                 if exploded_player:
                     # Log bomb explosion
-                    timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+                    timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
                     if exploded_player.lives <= 0:
                         log_entry = f"{timestamp} ELIMINATED: {exploded_player.username} was eliminated (timeout)"
                     else:
@@ -897,7 +898,7 @@ def start_timer(room_id):
                     winner = active_players[0] if active_players else None
                     
                     # Log game over
-                    timestamp = datetime.get_cest_time().strftime("[%H:%M CEST]")
+                    timestamp = datetime.now(timezone.utc).astimezone(CEST).strftime("[%H:%M CEST]")
                     if winner:
                         log_entry = f"{timestamp} WIN: {winner.username} won the game in room {room_id}"
                     else:
