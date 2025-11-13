@@ -20,7 +20,7 @@ timers = {}
 banned_users = set()
 admin_actions_log = []
 admin_sessions = {}
-CEST = timezone(timedelta(hours=2))
+CEST = timezone(timedelta(hours=1))
 
 ADMIN_PASSWORD = "TimaPolinaEva1407_"  # Change this in production
 INITIAL_LIVES = 2
