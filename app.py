@@ -366,7 +366,7 @@ class GameRoom:
         # Log turn switch
         current_player = self.get_current_player()
         if current_player:
-            timestamp = datetime.now().strftime("[%H+1:%M CEST]")
+            timestamp = datetime.now().strftime("[%H:%M CEST]")
             log_entry = f"{timestamp} TURN: {current_player.username}'s turn started"
             admin_actions_log.append(log_entry)
             socketio.emit('admin_log_update', {'log_entry': log_entry})
