@@ -226,6 +226,7 @@ def load_word_list():
         'school', 'science', 'scientific', 'scientist', 'scope', 'score', 'scream', 'screen', 'script', 'search',
         'season', 'seat', 'second', 'secret', 'secretary', 'section', 'sector', 'secure', 'security', 'seed',
         'seek', 'seem', 'segment', 'seize', 'select', 'selection', 'self', 'sell', 'senate', 'senator',
+        'bed', 'new', 'lack', 'mid', 'fog', 'bitch',
         'send', 'senior', 'sense', 'sensitive', 'sentence', 'separate', 'sequence', 'series', 'serious', 'seriously',
         'serve', 'service', 'session', 'setting', 'settle', 'settlement', 'seven', 'several', 'severe', 'sexual',
         'shade', 'shadow', 'shake', 'shall', 'shape', 'share', 'sharp', 'shatter', 'shed', 'sheep',
